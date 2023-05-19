@@ -66,8 +66,7 @@ module.exports.getRecipeById = async (req, res) => {
       };
 
       res.status(200).json({
-        list: filteredRecipes,
-        count: doc.length,
+        ...filteredRecipes,
       });
     })
     .catch((error) => {
