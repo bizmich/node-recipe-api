@@ -62,7 +62,7 @@ module.exports.getRecipeById = async (req, res) => {
   const filteredComments = response.map((c) => {
     return {
       comment: c.comment,
-      commentedAt: c.createdDate,
+      commentedAt: c.commentedAt,
       email: c.email,
       name: c.name,
       recipeId: c.recipeId,
@@ -73,7 +73,7 @@ module.exports.getRecipeById = async (req, res) => {
   await RecipeSchema.findById(req.params.id)
     .then((doc) => {
       const filteredRecipes = {
-        commentedAt: doc.commentedAt,
+        createdDate: doc.createdDate,
         description: doc.description,
         image: doc.image,
         ingredient: doc.ingredient,
