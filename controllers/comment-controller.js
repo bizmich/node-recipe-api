@@ -25,52 +25,47 @@ module.exports.createComment = async (req, res) => {
     );
 };
 
-// get by id
-module.exports.getRecipeById = async (req, res) => {
-  await CommentSchema.findById(req.params.id)
-    .then((doc) => {
-      const filteredRecipes = {
-        createdDate: doc.createdDate,
-        description: doc.description,
-        image: doc.image,
-        ingredient: doc.ingredient,
-        name: doc.name,
-        cookingTime: doc.cookingTime,
-        rate: doc.rate,
-        id: doc._id,
-      };
-
-      res.status(200).json({
-        ...filteredRecipes,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: "Произошла ошибка",
-        error: error,
-      });
-    });
-};
-
 // updating a recipe
-module.exports.updateRecipe = async (req, res) => {
-  const id = req.body.id;
+module.exports.updateComment = async (req, res) => {
+  const id = req.params.id;
 
-  const recipeData = {
-    createdDate: new Date().toISOString(),
-    description: req.body.description,
-    image: "image",
-    ingredient: req.body.ingredient,
+  console.log("id:", id);
+
+  const CommentData = {
     name: req.body.name,
-    cookingTime: req.body.cookingTime,
-    rate: req.body.rate,
+    email: req.body.email,
+    comment: req.body.comment,
   };
 
-  await CommentSchema.findByIdAndUpdate(id, recipeData)
+  console.log("CommentData:", CommentData);
+
+  await CommentSchema.findByIdAndUpdate(id, CommentData)
     .then((doc) => {
       res.status(200).json({
         message: "Updated successfully",
       });
     })
-    .catch((err) => console.log("Error", err));
+    .catch((err) => {
+      res.status(404).json({
+        message: err.message,
+      });
+    });
+};
+// delete a recipe
+module.exports.deleteComment = async (req, res) => {
+  const id = req.params.id;
+
+  console.log("id:", id);
+
+  await CommentSchema.findByIdAndRemove(id)
+    .then((doc) => {
+      res.status(200).json({
+        message: "Delete successfully",
+      });
+    })
+    .catch((err) =>
+      res.status(404).json({
+        message: err.message,
+      })
+    );
 };

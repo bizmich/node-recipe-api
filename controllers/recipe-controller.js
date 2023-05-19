@@ -1,4 +1,5 @@
 const RecipeSchema = require("../model/recipe-model");
+const CommentSchema = require("../model/comment-model");
 
 // getting all recipe
 module.exports.getAllRecipe = async (req, res) => {
@@ -54,6 +55,8 @@ module.exports.createRecipe = async (req, res) => {
 
 // get by id
 module.exports.getRecipeById = async (req, res) => {
+  const response = await CommentSchema.find({ recipeId: req.params.id });
+
   await RecipeSchema.findById(req.params.id)
     .then((doc) => {
       const filteredRecipes = {
@@ -65,6 +68,7 @@ module.exports.getRecipeById = async (req, res) => {
         cookingTime: doc.cookingTime,
         rate: doc.rate,
         id: doc._id,
+        comments: response,
       };
 
       res.status(200).json({
