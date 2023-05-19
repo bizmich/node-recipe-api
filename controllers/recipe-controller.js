@@ -32,10 +32,11 @@ module.exports.getAllRecipe = async (req, res) => {
 
 // creating a recipe
 module.exports.createRecipe = async (req, res) => {
+  console.log(req.file);
   const recipeData = {
     createdDate: new Date().toISOString(),
     description: req.body.description,
-    image: "image",
+    image: req.file.path,
     ingredient: req.body.ingredient,
     name: req.body.name,
     cookingTime: req.body.cookingTime,
