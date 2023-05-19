@@ -55,7 +55,9 @@ module.exports.createRecipe = async (req, res) => {
 
 // get by id
 module.exports.getRecipeById = async (req, res) => {
-  const response = await CommentSchema.find({ recipeId: req.params.id });
+  const response = await CommentSchema.find({ recipeId: req.params.id }).sort({
+    _id: -1,
+  });
 
   const filteredComments = response.map((c) => {
     return {
@@ -71,7 +73,7 @@ module.exports.getRecipeById = async (req, res) => {
   await RecipeSchema.findById(req.params.id)
     .then((doc) => {
       const filteredRecipes = {
-        createdDate: doc.createdDate,
+        commentedAt: doc.commentedAt,
         description: doc.description,
         image: doc.image,
         ingredient: doc.ingredient,
