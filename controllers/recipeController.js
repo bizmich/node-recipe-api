@@ -49,3 +49,31 @@ module.exports.createRecipe = async (req, res) => {
     })
     .catch((err) => console.log("Error", err));
 };
+
+// get by id
+module.exports.getRecipeById = async (req, res) => {
+  await RecipeModel.findById(req.params.id)
+    .then((doc) => {
+      const filteredRecipes = {
+        createdDate: doc.createdDate,
+        description: doc.description,
+        image: doc.image,
+        ingredient: doc.ingredient,
+        name: doc.name,
+        cookingTime: doc.cookingTime,
+        rate: doc.rate,
+        id: doc._id,
+      };
+
+      res.status(200).json({
+        list: filteredRecipes,
+        count: doc.length,
+      });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "Произошла ошибка",
+        error: error,
+      });
+    });
+};
