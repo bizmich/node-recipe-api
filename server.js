@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
 require("dotenv").config();
-const routes = require("./routes/recipe");
+const recipeRoute = require("./routes/recipe-route");
+const commentRoute = require("./routes/comment-route");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -19,7 +20,8 @@ mongoose
 
 // routes
 
-app.use("/api", routes);
+app.use("/api", recipeRoute);
+app.use("/api", commentRoute);
 
 app.get("/", (req, res) => res.send("Hello World!"));
 app.listen(port, () => console.log(`Recipe app listening on port ${port}!`));

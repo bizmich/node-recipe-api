@@ -1,7 +1,8 @@
-const RecipeModel = require("../model/recipeModel");
+const RecipeSchema = require("../model/recipe-model");
 
+// getting all recipe
 module.exports.getAllRecipe = async (req, res) => {
-  await RecipeModel.find()
+  await RecipeSchema.find()
     .then((doc) => {
       const filteredRecipes = doc.map((el) => {
         return {
@@ -28,6 +29,7 @@ module.exports.getAllRecipe = async (req, res) => {
     });
 };
 
+// creating a recipe
 module.exports.createRecipe = async (req, res) => {
   const recipeData = {
     createdDate: new Date().toISOString(),
@@ -39,7 +41,7 @@ module.exports.createRecipe = async (req, res) => {
     rate: req.body.rate,
   };
 
-  await RecipeModel.create(recipeData)
+  await RecipeSchema.create(recipeData)
     .then((doc) => {
       console.log("doc:", doc);
 
@@ -52,7 +54,7 @@ module.exports.createRecipe = async (req, res) => {
 
 // get by id
 module.exports.getRecipeById = async (req, res) => {
-  await RecipeModel.findById(req.params.id)
+  await RecipeSchema.findById(req.params.id)
     .then((doc) => {
       const filteredRecipes = {
         createdDate: doc.createdDate,
@@ -75,4 +77,44 @@ module.exports.getRecipeById = async (req, res) => {
         error: error,
       });
     });
+};
+
+// updating a recipe
+module.exports.updateRecipe = async (req, res) => {
+  const id = req.params.id;
+
+  const recipeData = {
+    createdDate: new Date().toISOString(),
+    description: req.body.description,
+    image: "image",
+    ingredient: req.body.ingredient,
+    name: req.body.name,
+    cookingTime: req.body.cookingTime,
+    rate: req.body.rate,
+  };
+
+  await RecipeSchema.findByIdAndUpdate(id, recipeData)
+    .then((doc) => {
+      res.status(200).json({
+        message: "Updated successfully",
+      });
+    })
+    .catch((err) => console.log("Error", err));
+};
+
+// updating a recipe
+module.exports.deleteRecipe = async (req, res) => {
+  const id = req.params.id;
+
+  await RecipeSchema.findByIdAndRemove(id)
+    .then((doc) => {
+      res.status(200).json({
+        message: "Delete successfully",
+      });
+    })
+    .catch((err) =>
+      res.status(404).json({
+        message: err.message,
+      })
+    );
 };

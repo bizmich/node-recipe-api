@@ -4,10 +4,14 @@ const {
   getAllRecipe,
   createRecipe,
   getRecipeById,
-} = require("../controllers/recipeController");
+  updateRecipe,
+  deleteRecipe,
+} = require("../controllers/recipe-controller");
 
 router.get("/recipe", getAllRecipe);
 router.post("/recipe", createRecipe);
 router.get("/recipe/:id", getRecipeById);
+router.put("/recipe/:id", updateRecipe);
+router.delete("/recipe/:id", deleteRecipe);
 
 module.exports = router;
