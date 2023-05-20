@@ -36,7 +36,7 @@ module.exports.createRecipe = async (req, res) => {
   const recipeData = {
     createdDate: new Date().toISOString(),
     description: req.body.description,
-    image: req.file.path,
+    image: req.file.originalname,
     ingredient: req.body.ingredient,
     name: req.body.name,
     cookingTime: req.body.cookingTime,
@@ -56,6 +56,12 @@ module.exports.createRecipe = async (req, res) => {
 
 // get by id
 module.exports.getRecipeById = async (req, res) => {
+  await RecipeSchema.findByIdAndUpdate(
+    req.params.id,
+    { $inc: { viewCount: 1 } },
+    { new: true }
+  );
+
   const response = await CommentSchema.find({ recipeId: req.params.id }).sort({
     _id: -1,
   });
@@ -83,10 +89,30 @@ module.exports.getRecipeById = async (req, res) => {
         rate: doc.rate,
         id: doc._id,
         comments: filteredComments,
+        viewCount: doc.viewCount,
       };
 
       res.status(200).json({
         ...filteredRecipes,
+      });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "Произошла ошибка",
+        error: error,
+      });
+    });
+};
+// get by id and update rating
+module.exports.getRecipeByIdAndUpdateRating = async (req, res) => {
+  await RecipeSchema.findByIdAndUpdate(
+    req.body.id,
+    { rate: req.body.rate },
+    { new: true }
+  )
+    .then((doc) => {
+      res.status(200).json({
+        message: "Success",
       });
     })
     .catch((error) => {
