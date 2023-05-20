@@ -29,8 +29,6 @@ module.exports.createComment = async (req, res) => {
 module.exports.updateComment = async (req, res) => {
   const id = req.params.id;
 
-  console.log("id:", id);
-
   const CommentData = {
     name: req.body.name,
     email: req.body.email,
@@ -43,6 +41,22 @@ module.exports.updateComment = async (req, res) => {
     .then((doc) => {
       res.status(200).json({
         message: "Updated successfully",
+      });
+    })
+    .catch((err) => {
+      res.status(404).json({
+        message: err.message,
+      });
+    });
+};
+// updating a likes
+module.exports.updateLiking = async (req, res) => {
+  const id = req.params.id;
+
+  await CommentSchema.findByIdAndUpdate(id, { $inc: { likes: 1 } })
+    .then((doc) => {
+      res.status(200).json({
+        message: "Success",
       });
     })
     .catch((err) => {

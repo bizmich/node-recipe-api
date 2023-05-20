@@ -15,6 +15,7 @@ module.exports.getAllRecipe = async (req, res) => {
           cookingTime: el.cookingTime,
           rate: el.rate,
           id: el._id,
+          viewCount: el.viewCount,
         };
       });
       res.status(200).json({
@@ -37,7 +38,7 @@ module.exports.createRecipe = async (req, res) => {
     createdDate: new Date().toISOString(),
     description: req.body.description,
     image: req.file.originalname,
-    ingredient: req.body.ingredient,
+    ingredient: req.body.ingredient.split(","),
     name: req.body.name,
     cookingTime: req.body.cookingTime,
     rate: req.body.rate,
