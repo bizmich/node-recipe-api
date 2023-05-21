@@ -1,12 +1,7 @@
 const RecipeSchema = require("../model/recipe-model");
 const CommentSchema = require("../model/comment-model");
 const { initializeApp } = require("firebase/app");
-const {
-  getStorage,
-  ref,
-  getDownloadURL,
-  uploadBytesResumable,
-} = require("firebase/storage");
+const { getStorage, ref, uploadBytesResumable } = require("firebase/storage");
 const config = require("../config/firebase.config");
 
 initializeApp(config.firebaseConfig);
@@ -46,49 +41,19 @@ module.exports.getAllRecipe = async (req, res) => {
 module.exports.createRecipe = async (req, res) => {
   console.log(req.file);
 
-  const giveCurrentDateTime = () => {
-    const today = new Date();
-    const date =
-      today.getFullYear() +
-      "-" +
-      (today.getMonth() + 1) +
-      "-" +
-      today.getDate();
-    const time =
-      today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    const dateTime = date + " " + time;
-    return dateTime;
-  };
   try {
-    const dateTime = giveCurrentDateTime();
+    const storageRef = ref(storage, `files/${req.file.originalname}`);
 
-    const storageRef = ref(
-      storage,
-      `files/${req.file.originalname + "       " + dateTime}`
-    );
-
-    // Create file metadata including the content type
     const metadata = {
       contentType: req.file.mimetype,
     };
-
     // Upload the file in the bucket storage
-    const snapshot = await uploadBytesResumable(
-      storageRef,
-      req.file.buffer,
-      metadata
-    );
-    //by using uploadBytesResumable we can control the progress of uploading like pause, resume, cancel
-
-    // Grab the public url
-    const downloadURL = await getDownloadURL(snapshot.ref);
-
-    console.log("downloadURL:", downloadURL);
+    await uploadBytesResumable(storageRef, req.file.buffer, metadata);
 
     const recipeData = {
       createdDate: new Date().toISOString(),
       description: req.body.description,
-      image: downloadURL,
+      image: req.file.originalname,
       ingredient: req.body.ingredient.split(","),
       name: req.body.name,
       cookingTime: req.body.cookingTime,
@@ -104,14 +69,6 @@ module.exports.createRecipe = async (req, res) => {
         });
       })
       .catch((err) => console.log("Error", err));
-
-    // console.log("File successfully uploaded.");
-    // return res.send({
-    //   message: "file uploaded to firebase storage",
-    //   name: req.file.originalname,
-    //   type: req.file.mimetype,
-    //   downloadURL: downloadURL,
-    // });
   } catch (error) {
     return res.status(400).send(error.message);
   }
@@ -189,29 +146,44 @@ module.exports.getRecipeByIdAndUpdateRating = async (req, res) => {
 // updating a recipe
 module.exports.updateRecipe = async (req, res) => {
   const id = req.params.id;
+  try {
+    if (req.file) {
+      const storageRef = ref(storage, `files/${req.file.originalname}`);
 
-  const recipeData = {
-    createdDate: new Date().toISOString(),
-    description: req.body.description,
-    image: "image",
-    ingredient: req.body.ingredient,
-    name: req.body.name,
-    cookingTime: req.body.cookingTime,
-    rate: req.body.rate,
-  };
+      const metadata = {
+        contentType: req.file.mimetype,
+      };
+      // Upload the file in the bucket storage
+      await uploadBytesResumable(storageRef, req.file.buffer, metadata);
+    }
 
-  await RecipeSchema.findByIdAndUpdate(id, recipeData)
-    .then((doc) => {
-      res.status(200).json({
-        message: "Updated successfully",
-      });
-    })
-    .catch((err) => console.log("Error", err));
+    const recipeData = {
+      createdDate: new Date().toISOString(),
+      description: req.body.description,
+      image: req.file ? req.file.originalname : req.body.image,
+      ingredient: req.body.ingredient.split(","),
+      name: req.body.name,
+      cookingTime: req.body.cookingTime,
+      rate: req.body.rate,
+    };
+
+    await RecipeSchema.findByIdAndUpdate(id, recipeData)
+      .then((doc) => {
+        res.status(200).json({
+          message: "Updated successfully",
+        });
+      })
+      .catch((err) => console.log("Error", err));
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
 };
 
-// updating a recipe
+// deleting a recipe
 module.exports.deleteRecipe = async (req, res) => {
   const id = req.params.id;
+
+  await CommentSchema.deleteMany({ recipeId: id });
 
   await RecipeSchema.findByIdAndRemove(id)
     .then((doc) => {
