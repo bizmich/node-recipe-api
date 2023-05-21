@@ -1,5 +1,16 @@
 const RecipeSchema = require("../model/recipe-model");
 const CommentSchema = require("../model/comment-model");
+const { initializeApp } = require("firebase/app");
+const {
+  getStorage,
+  ref,
+  getDownloadURL,
+  uploadBytesResumable,
+} = require("firebase/storage");
+const config = require("../config/firebase.config");
+
+initializeApp(config.firebaseConfig);
+const storage = getStorage();
 
 // getting all recipe
 module.exports.getAllRecipe = async (req, res) => {
@@ -34,25 +45,76 @@ module.exports.getAllRecipe = async (req, res) => {
 // creating a recipe
 module.exports.createRecipe = async (req, res) => {
   console.log(req.file);
-  const recipeData = {
-    createdDate: new Date().toISOString(),
-    description: req.body.description,
-    image: req.file.originalname,
-    ingredient: req.body.ingredient.split(","),
-    name: req.body.name,
-    cookingTime: req.body.cookingTime,
-    rate: req.body.rate,
+
+  const giveCurrentDateTime = () => {
+    const today = new Date();
+    const date =
+      today.getFullYear() +
+      "-" +
+      (today.getMonth() + 1) +
+      "-" +
+      today.getDate();
+    const time =
+      today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    const dateTime = date + " " + time;
+    return dateTime;
   };
+  try {
+    const dateTime = giveCurrentDateTime();
 
-  await RecipeSchema.create(recipeData)
-    .then((doc) => {
-      console.log("doc:", doc);
+    const storageRef = ref(
+      storage,
+      `files/${req.file.originalname + "       " + dateTime}`
+    );
 
-      res.status(200).json({
-        list: doc,
-      });
-    })
-    .catch((err) => console.log("Error", err));
+    // Create file metadata including the content type
+    const metadata = {
+      contentType: req.file.mimetype,
+    };
+
+    // Upload the file in the bucket storage
+    const snapshot = await uploadBytesResumable(
+      storageRef,
+      req.file.buffer,
+      metadata
+    );
+    //by using uploadBytesResumable we can control the progress of uploading like pause, resume, cancel
+
+    // Grab the public url
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    console.log("downloadURL:", downloadURL);
+
+    const recipeData = {
+      createdDate: new Date().toISOString(),
+      description: req.body.description,
+      image: downloadURL,
+      ingredient: req.body.ingredient.split(","),
+      name: req.body.name,
+      cookingTime: req.body.cookingTime,
+      rate: req.body.rate,
+    };
+
+    await RecipeSchema.create(recipeData)
+      .then((doc) => {
+        console.log("doc:", doc);
+
+        res.status(200).json({
+          list: doc,
+        });
+      })
+      .catch((err) => console.log("Error", err));
+
+    // console.log("File successfully uploaded.");
+    // return res.send({
+    //   message: "file uploaded to firebase storage",
+    //   name: req.file.originalname,
+    //   type: req.file.mimetype,
+    //   downloadURL: downloadURL,
+    // });
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
 };
 
 // get by id
